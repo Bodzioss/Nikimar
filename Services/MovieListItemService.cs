@@ -1,4 +1,5 @@
 ﻿using Nikimar.DTOs;
+using Nikimar.Models;
 
 namespace Nikimar.Services
 {
@@ -11,7 +12,7 @@ namespace Nikimar.Services
             _context = context;
         }
 
-        public async Task AddAsync(MovieListItemDto movieListItemDto)
+        public async Task<MovieListItemDto> AddAsync(MovieListItemDto movieListItemDto)
         {
             var movieListItem = new MovieListItem
             {
@@ -21,6 +22,23 @@ namespace Nikimar.Services
 
             _context.MovieListItems.Add(movieListItem);
             await _context.SaveChangesAsync();
+
+            return movieListItemDto;
+        }
+
+        public async Task<MovieListItemDto> DeleteAsync(MovieListItemDto movieListItemDto)
+        {
+            var movieListItem = await _context.MovieListItems.FindAsync(movieListItemDto.Id);
+
+            if (movieListItem == null)
+            {
+                throw new InvalidOperationException("Movie list item not found.");
+            }
+
+            _context.MovieListItems.Remove(movieListItem);
+            await _context.SaveChangesAsync();
+
+            return movieListItemDto;
         }
 
     }

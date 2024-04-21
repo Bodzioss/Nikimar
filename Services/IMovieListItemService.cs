@@ -4,6 +4,7 @@ namespace Nikimar.Services
 {
     public interface IMovieListItemService
     {
-        Task AddAsync(MovieListItemDto movieListItemDto);
+        Task<MovieListItemDto> AddAsync(MovieListItemDto movieListItemDto);
+        Task<MovieListItemDto> DeleteAsync(MovieListItemDto movieListItemDto);
     }
 }

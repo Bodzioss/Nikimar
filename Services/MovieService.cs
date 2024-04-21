@@ -1,5 +1,6 @@
 ﻿using Nikimar.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Nikimar.Models;
 
 namespace Nikimar.Services
 {
@@ -12,14 +13,36 @@ namespace Nikimar.Services
             _context = context;
         }
 
-        public Task<MovieDto> CreateAsync(MovieDto movieDto)
+        public async Task<MovieDto> CreateAsync(MovieDto movieDto)
         {
-            throw new NotImplementedException();
+            // Przekształcanie MovieDto do Movie
+            var movie = new Movie
+            {
+                Title = movieDto.Title,
+                Description = movieDto.Description,
+                ReleaseYear = movieDto.ReleaseYear,
+                Genre = movieDto.Genre
+            };
+
+            // Dodawanie nowego filmu do kontekstu bazy danych
+            _context.Movies.Add(movie);
+            await _context.SaveChangesAsync();
+
+            // Uaktualnienie MovieDto z przypisanym Id z bazy danych
+            movieDto.Id = movie.Id;
+            return movieDto;
         }
 
-        public Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var movie = await _context.Movies.FindAsync(id);
+            if (movie == null)
+            {
+                throw new InvalidOperationException("Movie not found.");
+            }
+
+            _context.Movies.Remove(movie);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<MovieDto>> GetAllAsync()
@@ -55,12 +78,25 @@ namespace Nikimar.Services
             return movie;
         }
 
-        public Task UpdateAsync(MovieDto movieDto)
+        public async Task UpdateAsync(MovieDto movieDto)
         {
-            throw new NotImplementedException();
-        }
+            // Znajdź film w bazie danych
+            var movie = await _context.Movies.FindAsync(movieDto.Id);
+            if (movie == null)
+            {
+                throw new InvalidOperationException("Movie not found.");
+            }
 
-        //TO DO
+            // Aktualizuj właściwości filmu
+            movie.Title = movieDto.Title;
+            movie.Description = movieDto.Description;
+            movie.ReleaseYear = movieDto.ReleaseYear;
+            movie.Genre = movieDto.Genre;
+
+            // Zapisz zmiany w bazie danych
+            _context.Movies.Update(movie);
+            await _context.SaveChangesAsync();
+        }
     }
 
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Nikimar.DTOs;
 using Nikimar.Services;
+using System.Security.Claims;
 
 namespace Nikimar.Controllers
 {
@@ -25,7 +26,13 @@ namespace Nikimar.Controllers
         [HttpPost]
         public async Task<ActionResult<MovieListDto>> CreateMovieList([FromBody] MovieListDto movieListDto)
         {
-            var createdMovieList = await _movieListService.CreateAsync(movieListDto);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            var createdMovieList = await _movieListService.CreateAsync(movieListDto, userId);
             return CreatedAtAction("GetAllMovieLists", new { id = createdMovieList.Id }, createdMovieList);
         }
 

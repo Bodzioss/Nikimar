@@ -31,21 +31,6 @@ namespace Nikimar.Services
             return movieLists;
         }
 
-        public async Task<MovieListDto> CreateAsync(MovieListDto movieListDto)
-        {
-            var movieList = new MovieList
-            {
-                Name = movieListDto.Name,
-                //TO DO
-            };
-
-            _context.MovieLists.Add(movieList);
-            await _context.SaveChangesAsync();
-
-            movieListDto.Id = movieList.Id; 
-            return movieListDto;
-        }
-
         public async Task AddMovieToListAsync(int movieListId, MovieListItemDto movieListItemDto)
         {
             var movieListItem = new MovieListItem
@@ -56,6 +41,50 @@ namespace Nikimar.Services
             };
 
             _context.MovieListItems.Add(movieListItem);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<MovieListDto> CreateAsync(MovieListDto movieListDto, string userId)
+        {
+            var movieList = new MovieList
+            {
+                Name = movieListDto.Name,
+                UserId = userId  // Przypisanie listy do użytkownika
+            };
+
+            _context.MovieLists.Add(movieList);
+            await _context.SaveChangesAsync();
+
+            // Zwracanie DTO z zaktualizowanym identyfikatorem
+            movieListDto.Id = movieList.Id;
+            return movieListDto;
+        }
+
+        public async Task<MovieListDto> DeleteAsync(MovieListDto movieListDto)
+        {
+            var movieList = await _context.MovieLists.FindAsync(movieListDto.Id);
+            if (movieList == null)
+            {
+                throw new InvalidOperationException("Movie list not found.");
+            }
+
+            _context.MovieLists.Remove(movieList);
+            await _context.SaveChangesAsync();
+
+            return movieListDto;
+        }
+
+        public async Task RemoveMovieFromListAsync(int movieListId, MovieListItemDto movieListItemDto)
+        {
+            var movieListItem = await _context.MovieListItems
+                .FirstOrDefaultAsync(mli => mli.MovieListId == movieListId && mli.MovieId == movieListItemDto.MovieId);
+
+            if (movieListItem == null)
+            {
+                throw new InvalidOperationException("Movie list item not found.");
+            }
+
+            _context.MovieListItems.Remove(movieListItem);
             await _context.SaveChangesAsync();
         }
     }

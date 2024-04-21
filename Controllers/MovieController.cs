@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Nikimar.DTOs;
+using Nikimar.Models;
 using Nikimar.Services;
 
 namespace Nikimar.Controllers
@@ -35,6 +37,30 @@ namespace Nikimar.Controllers
             }
 
             return Ok(movie);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<MovieDto>> CreateMovie([FromBody] MovieDto movieDto)
+        {
+            // Sprawdzanie, czy przesłane dane są poprawne
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // Tworzenie filmu za pomocą serwisu
+                var createdMovieDto = await _movieService.CreateAsync(movieDto);
+
+                // Zwracanie odpowiedzi z lokalizacją nowo utworzonego zasobu
+                return CreatedAtAction(nameof(GetMovie), new { id = createdMovieDto.Id }, createdMovieDto);
+            }
+            catch (Exception ex)
+            {
+                // Logowanie wyjątku i zwracanie odpowiedzi serwera
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }
