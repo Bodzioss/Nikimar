@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Nikimar.Services;
+using Nikimar.Services.MovieService;
+using Nikimar.Services.MovieListService;
+using Nikimar.Services.RatingService;
+using Nikimar.Services.ReviewService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IMovieListService, MovieListService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 if (builder.Environment.IsDevelopment())
 {
@@ -24,10 +30,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
-/*builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-*/
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Nikimar.DTOs;
-using Nikimar.Services;
+using Nikimar.DTOs.Review;
+using Nikimar.Models;
+using Nikimar.Services.ReviewService;
 
 namespace Nikimar.Controllers
 {
-    [Route("api/movies/{movieId}/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class ReviewController : ControllerBase
     {
@@ -15,13 +16,72 @@ namespace Nikimar.Controllers
             _reviewService = reviewService;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<ReviewDto>> AddReview(int movieId, [FromBody] ReviewDto reviewDto)
+        // GET: api/Review
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ReviewDto>>> GetAllReviews()
         {
-            reviewDto.MovieId = movieId; 
-            var createdReview = await _reviewService.AddReviewAsync(reviewDto);
-            return CreatedAtAction("AddReview", new { movieId = movieId, id = createdReview.Id }, createdReview);
+            var reviews = await _reviewService.GetAllAsync();
+            return Ok(reviews);
         }
+
+        // GET: api/Review/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ReviewDto>> GetReviewById(int id)
+        {
+            var review = await _reviewService.GetByIdAsync(id);
+            if (review == null)
+            {
+                return NotFound();
+            }
+            return Ok(review);
+        }
+
+        // POST: api/Review
+        [HttpPost]
+        public async Task<ActionResult<ReviewDto>> CreateReview([FromBody] ReviewCreateDto reviewDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var createdReview = await _reviewService.CreateAsync(reviewDto);
+            return Ok(createdReview);
+        }
+
+        // PUT: api/Review/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateReview(int id, [FromBody] ReviewCreateDto reviewDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var review = await _reviewService.GetByIdAsync(id);
+            if (review == null)
+            {
+                return NotFound($"No review found with ID {id}.");
+            }
+
+            await _reviewService.UpdateAsync(id, reviewDto);
+            return NoContent();
+        }
+
+        // DELETE: api/Review/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteReview(int id)
+        {
+            var review = await _reviewService.GetByIdAsync(id);
+            if (review == null)
+            {
+                return NotFound($"No review found with ID {id}.");
+            }
+
+            await _reviewService.DeleteAsync(id);
+            return NoContent();
+        }
+
     }
 
 }

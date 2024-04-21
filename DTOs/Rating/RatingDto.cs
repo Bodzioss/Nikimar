@@ -1,4 +1,4 @@
-﻿namespace Nikimar.DTOs;
+﻿namespace Nikimar.DTOs.Rating;
 public class RatingDto
 {
     public int Id { get; set; }

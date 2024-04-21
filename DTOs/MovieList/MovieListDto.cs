@@ -1,4 +1,6 @@
-﻿namespace Nikimar.DTOs
+﻿using Nikimar.DTOs.MovieListItem;
+
+namespace Nikimar.DTOs.MovieList
 {
     public class MovieListDto
     {

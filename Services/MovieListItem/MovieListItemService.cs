@@ -1,7 +1,7 @@
-﻿using Nikimar.DTOs;
+﻿using Nikimar.DTOs.MovieListItem;
 using Nikimar.Models;
 
-namespace Nikimar.Services
+namespace Nikimar.Services.MovieListItemService
 {
     public class MovieListItemService : IMovieListItemService
     {

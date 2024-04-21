@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Nikimar.Models;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Reflection.Emit;
+
 
 public class ApplicationDbContext : IdentityDbContext
 {

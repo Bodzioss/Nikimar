@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Nikimar.DTOs;
+using Nikimar.DTOs.MovieList;
+using Nikimar.DTOs.MovieListItem;
 using Nikimar.Models;
-
-namespace Nikimar.Services
+namespace Nikimar.Services.MovieListService
 {
     public class MovieListService : IMovieListService
     {
@@ -44,11 +44,11 @@ namespace Nikimar.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<MovieListDto> CreateAsync(MovieListDto movieListDto, string userId)
+        public async Task<MovieListCreateDto> CreateAsync(MovieListCreateDto movieListCreateDto, string userId)
         {
             var movieList = new MovieList
             {
-                Name = movieListDto.Name,
+                Name = movieListCreateDto.Name,
                 UserId = userId  // Przypisanie listy do użytkownika
             };
 
@@ -56,8 +56,8 @@ namespace Nikimar.Services
             await _context.SaveChangesAsync();
 
             // Zwracanie DTO z zaktualizowanym identyfikatorem
-            movieListDto.Id = movieList.Id;
-            return movieListDto;
+            movieListCreateDto.Id = movieList.Id;
+            return movieListCreateDto;
         }
 
         public async Task<MovieListDto> DeleteAsync(MovieListDto movieListDto)
@@ -86,6 +86,52 @@ namespace Nikimar.Services
 
             _context.MovieListItems.Remove(movieListItem);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<MovieListDto> GetByIdAsync(int id)
+        {
+            // Przykład z użyciem Entity Framework
+            var movieList = await _context.MovieLists
+                .Where(ml => ml.Id == id)
+                .Select(ml => new MovieListDto
+                {
+                    Id = ml.Id,
+                    Name = ml.Name,
+                    Items = ml.Items.Select(i => new MovieListItemDto
+                    {
+                        MovieId = i.MovieId,
+                        MovieListId = i.MovieListId
+                        // TO DO
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return movieList;
+        }
+
+        public async Task<MovieListCreateDto> UpdateAsync(MovieListCreateDto movieListCreateDto)
+        {
+            // Znalezienie istniejącej listy filmów
+            var movieList = await _context.MovieLists.FindAsync(movieListCreateDto.Id);
+            if (movieList == null)
+            {
+                throw new KeyNotFoundException("Movie list not found.");
+            }
+
+            // Aktualizacja pól listy filmów
+            movieList.Name = movieListCreateDto.Name;
+            // Tutaj możesz dodać więcej pól do aktualizacji, zależnie od struktury twojego MovieListCreateDto i MovieList
+
+            // Zapisanie zmian w bazie danych
+            _context.MovieLists.Update(movieList);
+            await _context.SaveChangesAsync();
+
+            // Zwrócenie zaktualizowanego DTO
+            return new MovieListCreateDto
+            {
+                Id = movieList.Id,
+                Name = movieList.Name
+            };
         }
     }
 

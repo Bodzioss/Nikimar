@@ -1,8 +1,8 @@
-﻿using Nikimar.DTOs;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Nikimar.Models;
+using Nikimar.DTOs.Movie;
 
-namespace Nikimar.Services
+namespace Nikimar.Services.MovieService
 {
     public class MovieService : IMovieService
     {
@@ -13,7 +13,7 @@ namespace Nikimar.Services
             _context = context;
         }
 
-        public async Task<MovieDto> CreateAsync(MovieDto movieDto)
+        public async Task<MovieCreateDto> CreateAsync(MovieCreateDto movieDto)
         {
             // Przekształcanie MovieDto do Movie
             var movie = new Movie
@@ -28,8 +28,6 @@ namespace Nikimar.Services
             _context.Movies.Add(movie);
             await _context.SaveChangesAsync();
 
-            // Uaktualnienie MovieDto z przypisanym Id z bazy danych
-            movieDto.Id = movie.Id;
             return movieDto;
         }
 
@@ -78,10 +76,10 @@ namespace Nikimar.Services
             return movie;
         }
 
-        public async Task UpdateAsync(MovieDto movieDto)
+        public async Task<MovieCreateDto> UpdateAsync(int id, MovieCreateDto movieDto)
         {
             // Znajdź film w bazie danych
-            var movie = await _context.Movies.FindAsync(movieDto.Id);
+            var movie = await _context.Movies.FindAsync(id);
             if (movie == null)
             {
                 throw new InvalidOperationException("Movie not found.");
@@ -96,6 +94,8 @@ namespace Nikimar.Services
             // Zapisz zmiany w bazie danych
             _context.Movies.Update(movie);
             await _context.SaveChangesAsync();
+
+            return movieDto;
         }
     }
 

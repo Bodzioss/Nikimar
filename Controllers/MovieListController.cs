@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Nikimar.DTOs;
-using Nikimar.Services;
+using Nikimar.DTOs.MovieList;
+using Nikimar.DTOs.MovieListItem;
+using Nikimar.Models;
+using Nikimar.Services.MovieListService;
 using System.Security.Claims;
 
 namespace Nikimar.Controllers
@@ -23,8 +25,27 @@ namespace Nikimar.Controllers
             return Ok(movieLists);
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<MovieListDto>> GetMovieListById(int id)
+        {
+            try
+            {
+                var movieList = await _movieListService.GetByIdAsync(id);
+                if (movieList == null)
+                {
+                    return NotFound($"No movie list found with ID {id}.");
+                }
+
+                return Ok(movieList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpPost]
-        public async Task<ActionResult<MovieListDto>> CreateMovieList([FromBody] MovieListDto movieListDto)
+        public async Task<ActionResult<MovieListDto>> CreateMovieList([FromBody] MovieListCreateDto movieListCreateDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -32,7 +53,7 @@ namespace Nikimar.Controllers
                 return Unauthorized("User is not logged in.");
             }
 
-            var createdMovieList = await _movieListService.CreateAsync(movieListDto, userId);
+            var createdMovieList = await _movieListService.CreateAsync(movieListCreateDto, userId);
             return CreatedAtAction("GetAllMovieLists", new { id = createdMovieList.Id }, createdMovieList);
         }
 
@@ -41,6 +62,46 @@ namespace Nikimar.Controllers
         {
             await _movieListService.AddMovieToListAsync(movieListId, movieListItemDto);
             return Ok();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<MovieListDto>> UpdateMovieList(int id, [FromBody] MovieListCreateDto movieListCreateDto)
+        {
+
+            try
+            {
+                var updatedMovieList = await _movieListService.UpdateAsync(movieListCreateDto);
+                if (updatedMovieList == null)
+                {
+                    return NotFound($"No movie list found with ID {id}.");
+                }
+
+                return Ok(updatedMovieList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMovieList(int id)
+        {
+            try
+            {
+                var movieListToDelete = await _movieListService.GetByIdAsync(id);
+                if (movieListToDelete == null)
+                {
+                    return NotFound($"No movie list found with ID {id}.");
+                }
+
+                await _movieListService.DeleteAsync(movieListToDelete);
+                return NoContent();  // HTTP 204 No Content jako potwierdzenie usunięcia
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 

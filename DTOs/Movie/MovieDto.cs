@@ -1,4 +1,4 @@
-﻿namespace Nikimar.DTOs
+﻿namespace Nikimar.DTOs.Movie
 {
     public class MovieDto
     {

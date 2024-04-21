@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Nikimar.DTOs;
+using Nikimar.DTOs.Movie;
 using Nikimar.Models;
-using Nikimar.Services;
+using Nikimar.Services.MovieService;
 
 namespace Nikimar.Controllers
 {
@@ -40,7 +40,7 @@ namespace Nikimar.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<MovieDto>> CreateMovie([FromBody] MovieDto movieDto)
+        public async Task<ActionResult<MovieDto>> CreateMovie([FromBody] MovieCreateDto movieCreateDto)
         {
             // Sprawdzanie, czy przesłane dane są poprawne
             if (!ModelState.IsValid)
@@ -51,10 +51,9 @@ namespace Nikimar.Controllers
             try
             {
                 // Tworzenie filmu za pomocą serwisu
-                var createdMovieDto = await _movieService.CreateAsync(movieDto);
+                var createdMovieDto = await _movieService.CreateAsync(movieCreateDto);
 
-                // Zwracanie odpowiedzi z lokalizacją nowo utworzonego zasobu
-                return CreatedAtAction(nameof(GetMovie), new { id = createdMovieDto.Id }, createdMovieDto);
+                return Ok(createdMovieDto);
             }
             catch (Exception ex)
             {
@@ -62,5 +61,60 @@ namespace Nikimar.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        // PUT: api/Movie/5
+        [HttpPut("{id}")]
+        public async Task<ActionResult<MovieDto>> UpdateMovie(int id, [FromBody] MovieCreateDto movieCreateDto)
+        {
+            // Sprawdzanie poprawności przesłanych danych
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var movieToUpdate = await _movieService.GetByIdAsync(id);
+                if (movieToUpdate == null)
+                {
+                    return NotFound();
+                }
+
+                // Aktualizacja filmu za pomocą serwisu
+                var updatedMovieDto = await _movieService.UpdateAsync(id, movieCreateDto);
+
+                // Zwracanie zaktualizowanego filmu
+                return Ok(updatedMovieDto);
+            }
+            catch (Exception ex)
+            {
+                // Logowanie wyjątku i zwracanie odpowiedzi serwera
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // DELETE: api/Movie/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteMovie(int id)
+        {
+            try
+            {
+                var movieToDelete = await _movieService.GetByIdAsync(id);
+                if (movieToDelete == null)
+                {
+                    return NotFound();
+                }
+
+                await _movieService.DeleteAsync(id);
+                return NoContent(); // Zwraca status 204 No Content jako potwierdzenie usunięcia
+            }
+            catch (Exception ex)
+            {
+                // Logowanie wyjątku i zwracanie odpowiedzi serwera
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
     }
 }
